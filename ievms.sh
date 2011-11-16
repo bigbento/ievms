@@ -132,8 +132,8 @@ build_ievm() {
         log "Checking for downloaded VHD at ${vhd_path}/${archive}"
         if [[ ! -f "${archive}" ]]
         then
-            log "Downloading VHD from ${url} to ${ievms_home}/"
-            if ! curl -L -O "${url}"
+            log "Downloading VHD from NFS to ${ievms_home}/"
+            if ! cp "/Volumes/m8nfs/ievms/${vm}/"* ./
             then
                 fail "Failed to download ${url} to ${vhd_path}/ using 'curl', error code ($?)"
             fi
@@ -176,11 +176,16 @@ create_home
 check_virtualbox
 check_unrar
 
+mkdir -p /Volumes/m8nfs
+mount -t smbfs //"$NFS_USERNAME":"$NFS_PASSWORD"@"$NFS_HOST"/m8data /Volumes/m8nfs
+
 all_versions="7 8 9"
 for ver in ${IEVMS_VERSIONS:-$all_versions}
 do
     log "Building IE${ver} VM"
     build_ievm $ver
 done
+
+umount /Volumes/m8nfs
 
 log "Done!"
